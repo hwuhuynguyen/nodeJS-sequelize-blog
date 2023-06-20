@@ -1,4 +1,4 @@
-const commentService = require("../service/comment.service");
+const commentRepository = require("../repositories/comment.repository");
 
 exports.setPostUserIds = (req, res, next) => {
   if (!req.body.post) req.body.post = req.params.postId;
@@ -35,7 +35,7 @@ exports.getCommentById = async function (req, res, next) {
 
 exports.getAllCommentsByPost = async function (req, res, next) {
   if (!req.body.post) req.body.post = req.params.postId;
-  const comments = await commentService.findAllCommentsByPost(req.params.postId);
+  const comments = await commentRepository.findAllCommentsByPost(req.params.postId);
 
   res.status(200).json({
     status: "success",
@@ -50,7 +50,7 @@ exports.createComment = async function (req, res, next) {
   console.log("REQUEST: ", req.body);
   console.log("END REQUEST");
   
-  const comment = await commentService.addNewComment({
+  const comment = await commentRepository.addNewComment({
     content: req.body.content,
     post_id: parseInt(req.body.post, 10),
     user_id: req.body.user
@@ -58,13 +58,13 @@ exports.createComment = async function (req, res, next) {
   console.log("comment before creation: ", comment);
   if (!req.params.commentId) comment.path = String(comment.id).padStart(6, '0');
   else {
-    const parentComment = await commentService.findCommentById(req.params.commentId);
+    const parentComment = await commentRepository.findCommentById(req.params.commentId);
     console.log("parent comment: ", parentComment);
     comment.path = parentComment.path + "." + String(comment.id).padStart(6, '0');
   }
-  await commentService.updateComment(comment, comment.id);
+  await commentRepository.updateComment(comment, comment.id);
 
-  const row = await commentService.findCommentById(comment.id);
+  const row = await commentRepository.findCommentById(comment.id);
   console.log(row);
 
   // res.redirect('/view/posts/' + req.params.postId);

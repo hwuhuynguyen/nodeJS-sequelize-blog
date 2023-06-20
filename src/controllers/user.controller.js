@@ -1,7 +1,7 @@
 const multer = require("multer");
 const path = require("path");
 
-const userService = require("../service/user.service");
+const userRepository = require("../repositories/user.repository");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -17,7 +17,7 @@ const storage = multer.diskStorage({
 var upload = multer({ storage: storage });
 
 exports.getAllUsers = async function (req, res, next) {
-  const users = await userService.findAllUsers();
+  const users = await userRepository.findAllUsers();
 
   res.status(200).json({
     status: "success",
@@ -27,7 +27,7 @@ exports.getAllUsers = async function (req, res, next) {
 };
 
 exports.getUserById = async function (req, res, next) {
-  const user = await userService.findUserById(req.params.id);
+  const user = await userRepository.findUserById(req.params.id);
 
   if (user.length === 0) {
     res.status(404).json({
@@ -43,7 +43,7 @@ exports.getUserById = async function (req, res, next) {
 };
 
 exports.createUser = async function (req, res, next) {
-  const user = await userService.addNewUser(req.body);
+  const user = await userRepository.addNewUser(req.body);
 
   res.status(201).json({
     status: "success",
@@ -66,7 +66,7 @@ exports.updateUser = async function (req, res, next) {
     console.log(req.body.gender);
     console.log(req.body.dateOfBirth);
     console.log(convertedPath);
-    const user = await userService.updateUser(req.params.id, {
+    const user = await userRepository.updateUser(req.params.id, {
       name: req.body.name,
       gender: req.body.gender,
       dateOfBirth: req.body.dateOfBirth,

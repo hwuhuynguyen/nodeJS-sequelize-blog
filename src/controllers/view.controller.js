@@ -1,7 +1,7 @@
-const userService = require("../service/user.service");
-const postService = require("../service/post.service");
-const commentService = require("../service/comment.service");
-const likeService = require("../service/like.service");
+const userRepository = require("../repositories/user.repository");
+const postRepository = require("../repositories/post.repository");
+const commentRepository = require("../repositories/comment.repository");
+const likeRepository = require("../repositories/like.repository");
 
 exports.displayHomePage = async function (req, res, next) {
   // const activeUsers = await Post.aggregate([
@@ -39,13 +39,13 @@ exports.displayHomePage = async function (req, res, next) {
   //   },
   // ]);
 
-  const activeUsers = await userService.getUsersWithMostPosts();
+  const activeUsers = await userRepository.getUsersWithMostPosts();
   console.log("Active users: ", activeUsers);
   const date = Date.now();
-  const posts = await postService.findAllPostsAndItsAuthorAndStats();
+  const posts = await postRepository.findAllPostsAndItsAuthorAndStats();
   console.log(posts);
   console.log("Find all: ", Date.now() - date);
-  const recentPosts = await postService.findRecentPosts();
+  const recentPosts = await postRepository.findRecentPosts();
 
   res.render("home-page", {
     posts,
@@ -54,14 +54,14 @@ exports.displayHomePage = async function (req, res, next) {
   });
 };
 exports.displayPosts = async function (req, res, next) {
-  const posts = await postService.findAllPostsAndItsAuthorAndStats();
+  const posts = await postRepository.findAllPostsAndItsAuthorAndStats();
   res.render("post-list", {
     posts,
   });
 };
 
 exports.displayPostDetailById = async function (req, res, next) {
-  const row = await postService.findPostByIdAndItsAuthorAndLikeCount(
+  const row = await postRepository.findPostByIdAndItsAuthorAndLikeCount(
     req.params.postId
   );
   console.log("1================================================");
@@ -72,7 +72,8 @@ exports.displayPostDetailById = async function (req, res, next) {
   // const rowJson = JSON.stringify(row);
   const post = row[0];
   // post.createdAt = new Date(post.createdAt);
-  const comments = await commentService.getCommentSortedOfAPost(
+  const comments = await commentRepository
+.getCommentSortedOfAPost(
     parseInt(req.params.postId, 10)
   );
   console.log(comments);
@@ -81,7 +82,7 @@ exports.displayPostDetailById = async function (req, res, next) {
     comment.level = comment.path.split(".").length;
   });
 
-  const usersLikedPostRow = await likeService
+  const usersLikedPostRow = await likeRepository
     .getUsersLikedPost(req.params.postId)
     .catch((error) => { console.log(error);});
 
@@ -102,9 +103,9 @@ exports.displayPostDetailById = async function (req, res, next) {
     console.log("3================================================");
     for (let comment of comments) {
       try {
-        const likeCount = await likeService.getLikesOfAComment(comment.id);
+        const likeCount = await likeRepository.getLikesOfAComment(comment.id);
         await likeCount.map((element) => (comment.like = element.like_count));
-        const usersLikedCommentRow = await likeService.getUsersLikedComment(
+        const usersLikedCommentRow = await likeRepository.getUsersLikedComment(
           comment.id
         );
         if (usersLikedCommentRow.length > 0) {
@@ -137,7 +138,7 @@ exports.displayRegisterPage = async function (req, res, next) {
 
 exports.displayDashboard = async function (req, res, next) {
   const myPosts =
-    (await postService.getPostsByUser(req.user.id).catch((err) => {})) || [];
+    (await postRepository.getPostsByUser(req.user.id).catch((err) => {})) || [];
   req.user.dateOfBirth = new Date(req.user.dateOfBirth);
   res.render("dashboard", {
     myPosts,

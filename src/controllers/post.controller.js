@@ -1,8 +1,8 @@
 const multer = require("multer");
 const path = require("path");
 
-const postService = require("../service/post.service");
-const commentService = require("../service/comment.service");
+const postRepository = require("../repositories/post.repository");
+const commentRepository = require("../repositories/comment.repository");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -20,7 +20,7 @@ var upload = multer({ storage: storage });
 exports.getAllPosts = async function (req, res, next) {
   const date = Date.now();
 
-  const posts = await postService.findAllPosts();
+  const posts = await postRepository.findAllPosts();
 
   console.log("Find all: ", Date.now() - date);
   //   const jwt = res.headers['jwt'];
@@ -35,14 +35,14 @@ exports.getAllPosts = async function (req, res, next) {
 
 exports.getPostById = async function (req, res, next) {
   const time = Date.now();
-  const post = await postService.findPostById(req.params.id);
+  const post = await postRepository.findPostById(req.params.id);
   if (post.length === 0) {
     return res.status(404).json({
       status: "fail",
       message: "Post not found with that ID",
     });
   }
-  const comments = await commentService.findAllCommentsByPost(req.params.id);
+  const comments = await commentRepository.findAllCommentsByPost(req.params.id);
   // comments.sort((a, b) => a.path.localeCompare(b.path));
   // console.log(comments);
   // post.comments.sort((a, b) => a.path.localeCompare(b.path));
@@ -56,7 +56,7 @@ exports.getPostById = async function (req, res, next) {
 };
 
 exports.getAllPostsByUserId = async function (req, res, next) {
-  const posts = await postService.getPostsByUser({ author: req.params.userId });
+  const posts = await postRepository.getPostsByUser({ author: req.params.userId });
 
   res.status(200).json({
     status: "success",
@@ -68,7 +68,7 @@ exports.getAllPostsByUserId = async function (req, res, next) {
 exports.createPost = async function (req, res, next) {
   if (!req.body.author) req.body.author = req.user.id;
   console.log(req.body);
-  // const post = await postService.addNewPost(req.body);
+  // const post = await postRepository.addNewPost(req.body);
   // console.log(post);
   // res.status(201).json({
   //   status: "success",
@@ -84,7 +84,7 @@ exports.createPost = async function (req, res, next) {
 
     let convertedPath = "/" + path.relative("src/public", req.file.path);
 
-    const post = await postService.addNewPost({
+    const post = await postRepository.addNewPost({
       title: req.body.title,
       content: req.body.content,
       postPicture: convertedPath,
@@ -106,7 +106,7 @@ exports.updatePost = async function (req, res, next) {
 
     let convertedPath = "/" + path.relative("src/public", req.file.path);
 
-    const post = await postService.updatePostById(req.params.id, {
+    const post = await postRepository.updatePostById(req.params.id, {
       title: req.body.title,
       content: req.body.content,
       postPicture: convertedPath,
@@ -114,7 +114,7 @@ exports.updatePost = async function (req, res, next) {
     });
     res.redirect("/view/posts");
   });
-  // const post = await postService.updatePostById(req.params.id, req.body);
+  // const post = await postRepository.updatePostById(req.params.id, req.body);
   // console.log(post);
   // res.status(200).json({
   //   status: "success",

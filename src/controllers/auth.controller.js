@@ -5,7 +5,7 @@ const path = require("path");
 
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
-const userService = require("../service/user.service");
+const userRepository = require("../repositories/user.repository");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -58,7 +58,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     if (req.file !== undefined) {
       let convertedPath = "/" + path.relative("src/public", req.file.path);
 
-      newUser = await userService.addNewUser({
+      newUser = await userRepository.addNewUser({
         name: req.body.name,
         email: req.body.email,
         password: req.body.password,
@@ -67,7 +67,7 @@ exports.signup = catchAsync(async (req, res, next) => {
         dateOfBirth: req.body.dateOfBirth,
       });
     } else {
-      newUser = await userService.addNewUser({
+      newUser = await userRepository.addNewUser({
         name: req.body.name,
         email: req.body.email,
         password: req.body.password,
@@ -76,7 +76,7 @@ exports.signup = catchAsync(async (req, res, next) => {
       });
     }
 
-    newUser = await userService.findUserByEmail(req.body.email);
+    newUser = await userRepository.findUserByEmail(req.body.email);
     // Convert the RowDataPacket object to JSON string and then parse it
     console.log(newUser);
 
@@ -91,7 +91,7 @@ exports.login = catchAsync(async (req, res, next) => {
   if (!email || !password) {
     return next(new AppError("Please provide email and password!"), 400);
   }
-  const user = await userService.findUserByEmail(email).catch((err) => {});
+  const user = await userRepository.findUserByEmail(email).catch((err) => {});
   if (user) {
     if (user.length === 0 || user.password !== password) {
       res.redirect("/view/auth/login");
@@ -146,7 +146,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
   // 3. Check if the user still exists
-  const currentUser = await userService
+  const currentUser = await userRepository
     .findUserById(decoded.id)
     .catch((err) => {});
   if (currentUser) {
@@ -178,7 +178,7 @@ exports.isLoggedIn = async (req, res, next) => {
     const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
     // 3. Check if the user still exists
-    const currentUser = await userService.findUserById(decoded.id);
+    const currentUser = await userRepository.findUserById(decoded.id);
     if (currentUser) {
       console.log("User:", currentUser);
       // GRANT ACCESS TO PROTECTED ROUTE

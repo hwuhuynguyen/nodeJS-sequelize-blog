@@ -1,12 +1,12 @@
-const userService = require("../service/user.service");
-const postService = require("../service/post.service");
-const commentService = require("../service/comment.service");
-const likeService = require("../service/like.service");
+const userRepository = require("../repositories/user.repository");
+const postRepository = require("../repositories/post.repository");
+const commentRepository = require("../repositories/comment.repository");
+const likeRepository = require("../repositories/like.repository");
 
 exports.updateLikeInPost = async function (req, res, next) {
   console.log("get like in post");
 
-  let usersLikedPostRow = await likeService
+  let usersLikedPostRow = await likeRepository
     .getUsersLikedPost(req.params.postId)
     .catch((err) => {});
   let usersLikedPost = [];
@@ -17,17 +17,17 @@ exports.updateLikeInPost = async function (req, res, next) {
 
   if (!usersLikedPost.includes(req.user.id)) {
     usersLikedPost.push(req.user.id);
-    await likeService.addLikeToLikePostList(req.user.id, req.params.postId);
+    await likeRepository.addLikeToLikePostList(req.user.id, req.params.postId);
   } else {
     const index = usersLikedPost.indexOf(req.user.id);
     if (index !== -1) {
       usersLikedPost.splice(index, 1); // Remove the user ID from the array
     }
-    await likeService.removeLikeToLikePostList(req.user.id, req.params.postId);
+    await likeRepository.removeLikeToLikePostList(req.user.id, req.params.postId);
   }
   console.log(usersLikedPost);
   console.log(req.user.id);
-  const postRow = await postService.findPostByIdAndItsAuthorAndLikeCount(
+  const postRow = await postRepository.findPostByIdAndItsAuthorAndLikeCount(
     req.params.postId
   );
   // Convert the RowDataPacket object to JSON string and then parse it
@@ -45,7 +45,7 @@ exports.updateLikeInPost = async function (req, res, next) {
 exports.updateLikeInComment = async function (req, res, next) {
   console.log("get like in comment");
 
-  let usersLikedCommentRow = await likeService
+  let usersLikedCommentRow = await likeRepository
     .getUsersLikedComment(req.params.commentId)
     .catch((err) => {});
   let usersLikedComment = [];
@@ -56,17 +56,17 @@ exports.updateLikeInComment = async function (req, res, next) {
 
   if (!usersLikedComment.includes(req.user.id)) {
     usersLikedComment.push(req.user.id);
-    await likeService.addLikeToLikeCommentList(req.user.id, req.params.commentId);
+    await likeRepository.addLikeToLikeCommentList(req.user.id, req.params.commentId);
   } else {
     const index = usersLikedComment.indexOf(req.user.id);
     if (index !== -1) {
       usersLikedComment.splice(index, 1); // Remove the user ID from the array
     }
-    await likeService.removeLikeToLikeCommentList(req.user.id, req.params.commentId);
+    await likeRepository.removeLikeToLikeCommentList(req.user.id, req.params.commentId);
   }
   console.log(usersLikedComment);
   console.log(req.user.id);
-  const commentRow = await commentService.findCommentByIdAndItsAuthorAndLikeCount(
+  const commentRow = await commentRepository.findCommentByIdAndItsAuthorAndLikeCount(
     req.params.commentId
   );
   // Convert the RowDataPacket object to JSON string and then parse it
